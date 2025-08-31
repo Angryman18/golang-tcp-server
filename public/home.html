@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go TCP Server Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-message {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .headers-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .headers-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .header-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .header-item:last-child {
+            border-bottom: none;
+        }
+
+        .header-name {
+            font-weight: bold;
+            color: #2d3748;
+            min-width: 150px;
+        }
+
+        .header-value {
+            color: #4a5568;
+            font-family: monospace;
+            background: #f7fafc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            max-width: 300px;
+            overflow-wrap: break-word;
+        }
+
+        .tcp-info {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .tcp-title {
+            font-size: 1.8rem;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .tcp-description {
+            font-size: 1.1rem;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #48bb78;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(72, 187, 120, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(72, 187, 120, 0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .headers-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-message {
+                font-size: 1.8rem;
+            }
+            
+            .header-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .header-value {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="status-message">
+                <span class="status-indicator"></span>
+                Yoo! The server is running
+            </div>
+            <div class="subtitle">Raw TCP Connection in Golang</div>
+        </div>
+
+        <div class="headers-container">
+            <div class="headers-section">
+                <h2 class="section-title">Request Headers</h2>
+                <div id="request-headers">
+                    <div class="header-item">
+                        <span class="header-name">Host:</span>
+                        <span class="header-value">localhost:3000</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-name">User-Agent:</span>
+                        <span class="header-value">Mozilla/5.0 (Windows NT 10.0; Win64; x64)</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-name">Accept:</span>
+                        <span class="header-value">text/html,application/xhtml+xml</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-name">Accept-Language:</span>
+                        <span class="header-value">en-US,en;q=0.9</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-name">Accept-Encoding:</span>
+                        <span class="header-value">gzip, deflate</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-name">Connection:</span>
+                        <span class="header-value">keep-alive</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="headers-section">
+                <h2 class="section-title">Response Headers</h2>
+                <div id="response-headers">
+                    <div class="header-item">
+                        <span class="header-name">HTTP/1.1:</span>
+                        <span class="header-value">200 OK</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-name">Content-Type:</span>
+                        <span class="header-value">text/html; charset=utf-8</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-name">Server:</span>
+                        <span class="header-value">GoTCP/1.0</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-name">Date:</span>
+                        <span class="header-value" id="current-date"></span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-name">Connection:</span>
+                        <span class="header-value">keep-alive</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-name">X-Powered-By:</span>
+                        <span class="header-value">Raw TCP Socket</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tcp-info">
+            <h2 class="tcp-title">🚀 Raw TCP Server Status</h2>
+            <p class="tcp-description">
+                This page is being served by a custom Golang TCP server that handles raw socket connections.
+                No HTTP framework needed - just pure TCP magic! The server parses HTTP requests manually
+                and crafts responses from scratch using Go's net package.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('current-date').textContent = new Date().toUTCString();
+
+        document.querySelectorAll('.header-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.background = 'rgba(102, 126, 234, 0.1)';
+                this.style.transform = 'translateX(5px)';
+                this.style.transition = 'all 0.3s ease';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.background = 'transparent';
+                this.style.transform = 'translateX(0)';
+            });
+        });
+
+        function updateConnectionStatus() {
+            const statusMessage = document.querySelector('.status-message');
+            const messages = [
+                'Yoo! The server is running',
+                'TCP connection active',
+                'Raw socket serving content',
+                'Golang power engaged'
+            ];
+            
+            let currentIndex = 0;
+            setInterval(() => {
+                statusMessage.innerHTML = `<span class="status-indicator"></span>${messages[currentIndex]}`;
+                currentIndex = (currentIndex + 1) % messages.length;
+            }, 3000);
+        }
+
+        setTimeout(updateConnectionStatus, 3000);
+
+        console.log('🚀 Raw TCP Server Dashboard Loaded');
+        console.log('Server: GoTCP/1.0');
+        console.log('Connection: Raw TCP Socket');
+        console.log('Status: Active and serving requests!');
+    </script>
+</body>
+</html>
