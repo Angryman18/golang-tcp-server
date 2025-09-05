@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func ParsePublic(pathname string) string {
+func ParsePublic(pathname string) *os.File {
 
 	lastIdx := strings.LastIndex(pathname, "/")
 
@@ -15,7 +15,7 @@ func ParsePublic(pathname string) string {
 	}
 
 	if lastIdx == -1 {
-		return "No Such File"
+		return nil
 	}
 
 	fileName := pathname[lastIdx+1 : len(pathname)-1]
@@ -25,10 +25,10 @@ func ParsePublic(pathname string) string {
 	files, err := os.ReadDir(constructDir)
 
 	if err != nil {
-		return "<h4>Error 404 File Not Found</h4>"
+		return nil
 	}
 
-	var fileData string
+	var fileReader *os.File = nil
 	for _, name := range files {
 		fileInfo, _ := name.Info()
 
@@ -38,17 +38,15 @@ func ParsePublic(pathname string) string {
 		if strings.Contains(actualName, filePath) {
 			constructDir := fmt.Sprintf("./public%s", strings.Trim(pathname, " "))
 
-			file, readErr := os.ReadFile(constructDir)
-			if readErr != nil {
-				fileData = string("404 File Not Found")
+			file, err := os.Open(constructDir)
+			if err != nil {
 				break
 			}
-			fileData = string(file)
+			fileReader = file
 			break
 		}
-		fileData = "404 File Doesnt Exist"
 	}
 
-	return fileData
+	return fileReader
 
 }
